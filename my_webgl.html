@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset = "UTF-8">
+        <meta name = "Generator" content = "EditPlus">
+        <meta name = "Author" content = "YPW">
+        <meta name = "Keywords" content = "">
+        <meta name = "Description" content = "">
+        <title>Draw a red rectangle</title>
+        <style id="webgl_css" src="src/styles/my_webgl.css"></style>
+        <script id="2d-vertex-shader" type="notjs">
+            attribute vec4 a_position;
+
+            void main() {
+                gl_Position = a_position;
+            }
+        </script>
+        <script id="2d-fragment-shader" type="notjs">
+            precision mediump float;
+
+            void main() {
+                gl_FragColor = vec4(1, 0, 0.5, 1);
+            }
+        </script>
+        <script type = "text/javascript" src = "src/scripts/main.js"></script>
+    </head>
+
+    <body>
+        <canvas id = "glCanvas" width = "720" height = "1080">
+            Please use a browser that supports "canvas".
+        </canvas>
+    </body>
+</html>
