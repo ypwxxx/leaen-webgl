@@ -34,6 +34,8 @@ function main(){
     //获取canvas标签
     // let canvas = document.getElementById("myCanvas");
     const glCanvas = document.querySelector('#glCanvas');
+    // glCanvas.width = window.outerWidth;
+    // glCanvas.height = window.outerHeight;
 
     const gl = glCanvas.getContext('webgl');
     if(!gl){
