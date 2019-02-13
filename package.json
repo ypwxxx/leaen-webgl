@@ -1,0 +1,23 @@
+{
+  "name": "learn_three",
+  "version": "0.0.1",
+  "description": "learn three.js",
+  "main": "index.html",
+  "scripts": {
+    "test": "run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ypwxxx/leaen-webgl.git"
+  },
+  "author": "ypw",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ypwxxx/leaen-webgl/issues"
+  },
+  "homepage": "https://github.com/ypwxxx/leaen-webgl#readme",
+  "dependencies": {
+    "three": "^0.101.1"
+  },
+  "devDependencies": {}
+}
