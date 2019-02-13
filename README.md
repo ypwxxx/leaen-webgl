@@ -1,2 +1,2 @@
 # leaen-webgl
-learn webgl
+learn three.js
