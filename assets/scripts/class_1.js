@@ -34,7 +34,11 @@ let cube = null;        //立方体
 let width = null;
 let height = null;
 
-let initThree = function(){
+let initScene = function(){
+    scene = new THREE.Scene();
+};
+
+let initRenderer = function(){
     width = document.getElementById('canvas-frame').clientWidth;
     height = document.getElementById('canvas-frame').clientHeight;
     renderer = new THREE.WebGLRenderer({
@@ -58,10 +62,7 @@ let initCamera = function(){
         y:0,
         z:0
     });
-};
-
-let initScene = function(){
-    scene = new THREE.Scene();
+    scene.add(camera);
 };
 
 let initLight = function(){
@@ -109,9 +110,9 @@ let render = function(){
 }
 
 let threeStart = function(){
-    initThree();
-    initCamera();
     initScene();
+    initRenderer();
+    initCamera();
     initLight();
     initObj();
     renderer.clear();
@@ -119,4 +120,4 @@ let threeStart = function(){
     // render();
 };
 
-// threeStart();
+threeStart();
