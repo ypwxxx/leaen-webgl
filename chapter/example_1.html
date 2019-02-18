@@ -13,22 +13,47 @@
             }
         </style>
         <script type="text/javascript" src="node_modules/three/build/three.js"></script>
+        <script type="text/javascript" src="assets/scripts/stat.js"></script>
         <script>
+            //兼容性处理
+            let requestAnimationFrame = window.requestAnimationFrame
+                    || window.mozRequestAnimationFrame
+                    || window.webkitRequestAnimationFrame
+                    || window.msRequestAnimationFrame;
+            window.requestAnimationFrame = requestAnimationFrame;
+
             let renderer = null;    //渲染器
             let camera = null;      //相机
             let scene = null;       //场景
             let light = null;       //光源
             let loader = null;      //加载
             let mesh = null;        //要绘制的物体
-            let material = new THREE.MeshBasicMaterial({
-                            color: 0xf3ef1a,
-                            wireframe: true,
-                            side: THREE.BackSide
-                        });
+
+            let stat = null;       //性能
+            let id = null;      //循环渲染的id
+
+            let material = new THREE.MeshNormalMaterial({
+                // specular: 0xffff00,
+                // shininess: 10,
+                // color: 0xff0000,
+                // emissive: 0x0000ff
+                // wireframe: true,
+                // side: THREE.BackSide
+            });
 
             let width = null;
             let height = null;
 
+            //初始化性能工具
+            let initStart = function() {
+                stat = new Stats();
+                stat.domElement.style.position = 'absolute';
+                stat.domElement.style.right = '0px';
+                stat.domElement.style.top = '0px';
+                document.body.appendChild(stat.domElement);
+            }
+
+            //初始化渲染器
             let initRenderer = function(){
                 width = document.getElementById('mainCanvas').clientWidth;
                 height = document.getElementById('mainCanvas').clientHeight;
@@ -41,6 +66,7 @@
                 renderer.setClearColor(0x000000, 1.0);
             };
 
+            //初始化相机
             let initCamera = function(){
                 // //透视相机
                 // camera = new THREE.PerspectiveCamera(45, width/height, 1, 1000);
@@ -48,17 +74,19 @@
 
                 //正交相机
                 camera = new THREE.OrthographicCamera(-5, 5, 3.75, -3.75, 0.1, 100);
-                camera.position.set(0, 25, 0);
+                camera.position.set(25, 25, 25);
                 camera.lookAt(new THREE.Vector3(0, 0, 0));
             };
 
+            //初始化场景
             let initScene = function(){
                 scene = new THREE.Scene();
             };
 
+            //初始化光源
             let initLight = function(){
-                light = new THREE.DirectionalLight(0xFF0000, 1.0, 0);
-                light.position.set(100, 100, 200);
+                light = new THREE.PointLight(0xffffff, 1.0, 100);
+                light.position.set(10, 15, 5);
                 scene.add(light);
             };
 
@@ -75,9 +103,29 @@
                 })
             }
 
+            //加载材质图片
+            let loadImage = function() {
+                // let texture = THREE.ImageUtils.loadTexture('assets/textures/' + name + '.png', function(img) {
+                //     console.log();
+                // });
+                // material = new THREE.MeshLambertMaterial({
+                //     map: texture
+                // });
+                material = [];
+                for(let i = 0; i < 6; i++){
+                    let texture = THREE.ImageUtils.loadTexture('assets/textures/b'+ (i + 1) +'.png');
+                    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+                    texture.repeat.set(4, 4);
+                    material.push(new THREE.MeshBasicMaterial({
+                        map: texture,
+                        overdraw: true
+                    }))
+                }
+            }
+
             //绘制立方体
             let drawObj = function(){
-                mesh = new THREE.Mesh(new THREE.CubeGeometry(1, 2, 3, 2, 2, 3),material);
+                mesh = new THREE.Mesh(new THREE.CubeGeometry(5, 5, 5),new THREE.MeshFaceMaterial(material));
                 // cube.position.set(0, 0, 0);
                 scene.add(mesh);
             };
@@ -90,7 +138,7 @@
 
             //绘制球体
             let drawSphere = function() {
-                mesh = new THREE.Mesh(new THREE.SphereGeometry(3, 20, 20, 0, Math.PI * 2, 0, Math.PI / 2),material);
+                mesh = new THREE.Mesh(new THREE.SphereGeometry(3, 20, 20),material);
                 scene.add(mesh);
             };
 
@@ -195,20 +243,35 @@
                 scene.add(line3);
             };
 
+            // let config = 1;
+            // let count = 1;
             let render = function(){
+                stat.begin();
+
                 // renderer.clear();
                 mesh.rotation.y += Math.PI / 180 * 0.1;
+                // mesh.scale.set(count, count, count);
+                // count += config * 0.01;
+                // if(count >= 2 || count <= 0.1){
+                //     config *= -1;
+                // }
                 renderer.render(scene, camera);
-                requestAnimationFrame(render);
+                id = requestAnimationFrame(render);
+
+                stat.end();
             }
 
             let init = function(){
+
+                initStart();
+
                 initScene();
                 initRenderer();
                 initCamera();
-                // initLight();
+                initLight();
+                loadImage();
                 initAxis();
-                // drawObj();
+                drawObj();
                 // drawPlane();
                 // drawSphere();
                 // drawCircle();
@@ -217,11 +280,18 @@
                 // drawTorus();
                 // drawTorusKnot();
                 // loadFont();
-                drawCustom();
+                // drawCustom();
                 // renderer.clear();
                 // renderer.render(scene, camera);
                 render();
             };
+
+            let stop = function() {
+                if(id !== null){
+                    cancelAnimationFrame(id);
+                    id = null;
+                }
+            }
         </script>
     </head>
     <body onload="init();">

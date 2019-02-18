@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset=utf-8>
+        <title>load OBJ</title>
+        <style type="text/css">
+        </style>
+        <script type="text/javascript" src="../node_modules/three/build/three.js"></script>
+        <script type="text/javascript" src="../assets/scripts/stat.js"></script>
+        <script type="text/javascript" src="../node_modules/three/examples/js/loaders/OBJLoader.js"></script>
+        <script type="text/javascript" src="../node_modules/three/examples/js/loaders/MTLLoader.js"></script>
+        <script>
+            //动画样本
+
+            //兼容性处理
+            let requestAnimationFrame = window.requestAnimationFrame
+                    || window.mozRequestAnimationFrame
+                    || window.webkitRequestAnimationFrame
+                    || window.msRequestAnimationFrame;
+            window.requestAnimationFrame = requestAnimationFrame;
+
+            let renderer = null;    //渲染器
+            let camera = null;      //相机
+            let scene = null;       //场景
+            let light = null;       //光源
+            
+            let stat = null;       //性能
+            let id = null;      //循环渲染的id
+
+            let mesh = null;    //模型
+
+            let width = null;
+            let height = null;
+
+            //初始化性能工具
+            let initStart = function() {
+                stat = new Stats();
+                stat.domElement.style.position = 'absolute';
+                stat.domElement.style.right = '0px';
+                stat.domElement.style.top = '0px';
+                document.body.appendChild(stat.domElement);
+            }
+
+            //初始化渲染器
+            let initRenderer = function(){
+                width = document.getElementById('mainCanvas').clientWidth;
+                height = document.getElementById('mainCanvas').clientHeight;
+                renderer = new THREE.WebGLRenderer({
+                    canvas: document.getElementById('mainCanvas'),
+                    antialias: true
+                });
+                renderer.setClearColor(0x000000, 1.0);
+                renderer.shadowMap.enabled = true;
+                renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            };
+
+            //初始化相机
+            let initCamera = function(){
+                //透视相机
+                camera = new THREE.PerspectiveCamera(45, width/height, 1, 10000);
+                camera.position.set(1500, 1500, 1500);
+                camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+                // //正交相机
+                // camera = new THREE.OrthographicCamera(-5, 5, 3.75, -3.75, 0.1, 100);
+                // camera.position.set(15, 25, 25);
+                // camera.lookAt(new THREE.Vector3(0, 2, 0));
+            };
+
+            //初始化场景
+            let initScene = function(){
+                scene = new THREE.Scene();
+            };
+
+            //初始化光源
+            let initLight = function(){
+                // //环境光
+                // let light2 = new THREE.AmbientLight(0xffffff);
+                // scene.add(light2);
+
+                // //点光源
+                // light = new THREE.PointLight(0xffffff, 3, 2000);
+
+                //聚光灯
+                light = new THREE.SpotLight(0xffffff, 3, 3500, Math.PI / 5, 0.3, 0.5);
+
+                // //平行光
+                // light = new THREE.DirectionalLight(0xffffff, 1);
+
+                light.castShadow = true;
+                light.shadow.camera.near = 0.1;
+                light.shadow.camera.far = 5000;
+                light.shadow.camera.fov = 30;
+                // light.shadowCameraRight = 4000;
+                // light.shadowCameraTop = 4000;
+                // light.shadowCameraBottom = 4000;
+                scene.add(new THREE.CameraHelper(light.shadow.camera));
+
+                light.shadow.mapSize.width = 1024;
+                light.shadow.mapSize.height = 1024;
+
+                light.position.set(-1500, 0, 1500);
+                scene.add(light);
+            };
+
+            //读取文件
+            let loadFile = function(){
+                // new THREE.MTLLoader().load('../assets/objs/file.mtl', function(material){
+                //     material.preload();
+                //     let objloader = new THREE.OBJLoader();
+                //     // objloader.setMaterials(material);
+                //     objloader.load('../assets/objs/file.obj', function(obj) {
+                //         obj.traverse(function(child){
+                //             if(child instanceof THREE.Mesh){
+                //                 child.material = new THREE.MeshStandardMaterial({
+                //                     color: 0xff0000,
+                //                     side: THREE.DoubleSide
+                //                 });
+                //             }
+                //         });
+                //         mesh = obj;
+                //         mesh.scale.set(0.5, 0.5, 0.5);
+                //         mesh.castShadow = true;
+                //         scene.add(mesh);
+                //     })
+                // })
+                var sphereGeometry = new THREE.BoxBufferGeometry( 500, 500, 500 );
+                var sphereMaterial = new THREE.MeshStandardMaterial( { color: 0xff0000 } );
+                mesh = new THREE.Mesh( sphereGeometry, sphereMaterial );
+                mesh.position.y = 250;
+                mesh.castShadow = true; //default is false
+                mesh.receiveShadow = false; //default
+                scene.add( mesh );
+
+                light.target = mesh;
+                scene.add(light.target);
+            };
+
+            //绘制地面
+            let drawBottom = function(){
+                let bottom = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000),new THREE.MeshStandardMaterial({
+                    color: 0xcccccc
+                }));
+                bottom.position.y = -1;
+                bottom.rotation.x = -Math.PI / 2;
+                bottom.receiveShadow = true;
+                scene.add(bottom);
+            };
+
+            //初始化坐标轴
+            let initAxis = function() {
+                let geometry = new THREE.Geometry();
+                let p1 = new THREE.Vector3(0, 0, 0);
+                let p2 = new THREE.Vector3(1500, 0, 0);
+                geometry.vertices.push(p1);
+                geometry.vertices.push(p2);
+
+                let line1 = new THREE.Line(geometry, new THREE.LineBasicMaterial({
+                    color: 0xff0000, opacity: 1.0
+                }));
+                scene.add(line1);
+
+                let line2 = new THREE.Line(geometry, new THREE.LineBasicMaterial({
+                    color: 0x00ff00, opacity: 1.0
+                }));
+                line2.rotation.z = 90 * Math.PI / 180;
+                scene.add(line2);
+
+                let line3 = new THREE.Line(geometry, new THREE.LineBasicMaterial({
+                    color: 0x00ccff, opacity: 1.0
+                }));
+                line3.rotation.y = -90 * Math.PI / 180;
+                scene.add(line3);
+            };
+
+            let count = 500;
+            let num = 1;
+            let yheight = Math.round(1500 * Math.sqrt(2));
+            let lightNum = 1;
+            let render = function(){
+                stat.begin();
+
+                if(mesh){
+                    mesh.rotation.y += 0.01;
+                    mesh.position.x -= num;
+                    mesh.position.z += num;
+                    count -= num;
+                    if(count <= 0 || count >= 1000){
+                        num *= -1;
+                    }
+                }
+
+                if(light){
+                    let y = light.position.y + lightNum;
+                    let n = Math.sqrt((yheight * yheight - y * y) / 2);
+                    let x = n * lightNum * -1;
+                    let z = n * lightNum;
+                    light.position.set(x, y, z);
+
+                    if(y >= yheight || y <= 0){
+                        lightNum *= -1;
+                    }
+                }
+
+                renderer.render(scene, camera);
+                id = requestAnimationFrame(render);
+
+                stat.end();
+            }
+
+            let init = function(){
+                initStart();
+
+                initScene();
+                initRenderer();
+                initCamera();
+                initLight();
+                initAxis();
+
+                drawBottom();
+                loadFile();
+
+                render();
+            };
+        </script>
+    </head>
+    <body onload="init();">
+        <canvas id="mainCanvas" width="800px" height="600px"></canvas>
+    </body>
+</html>
