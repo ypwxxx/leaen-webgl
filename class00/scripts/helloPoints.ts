@@ -17,8 +17,8 @@ let FSHADER_SOURCE =
     ' gl_FragColor = u_PointColor;\n' +
     '}\n';
 
-let g_points = [];      // 存储已经获取到的点坐标
-let g_colors = [];      // 存储点的颜色
+let g_points: any[] = [];      // 存储已经获取到的点坐标
+let g_colors: any[] = [];      // 存储点的颜色
 
 function main(){
     let canvas = document.getElementById('webgl');
