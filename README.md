@@ -1,2 +1,0 @@
-# leaen-webgl
-learn webgl
